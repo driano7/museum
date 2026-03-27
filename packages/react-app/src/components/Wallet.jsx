@@ -42,6 +42,9 @@ const { Text } = Typography;
 **/
 
 export default function Wallet(props) {
+  const allowPrivateKey = props.showPrivateKey !== false;
+  const allowImport = props.showImport !== false;
+
   const [signerAddress, setSignerAddress] = useState();
   useEffect(() => {
     async function getAddress() {
@@ -83,7 +86,7 @@ export default function Wallet(props) {
     ""
   );
 
-  const showImportButton = (
+  const showImportButton = allowImport ? (
     <Button
       style={{ marginTop: 16 }}
       onClick={() => {
@@ -92,7 +95,7 @@ export default function Wallet(props) {
     >
       <span style={{ marginRight: 8 }}>💾</span>Import
     </Button>
-  );
+  ) : null;
 
   let display;
   let receiveButton;
@@ -123,7 +126,7 @@ export default function Wallet(props) {
         <QrcodeOutlined /> Hide
       </Button>
     );
-    privateKeyButton = (
+    privateKeyButton = allowPrivateKey ? (
       <Button
         key="hide"
         onClick={() => {
@@ -133,7 +136,7 @@ export default function Wallet(props) {
       >
         <KeyOutlined /> Private Key
       </Button>
-    );
+    ) : null;
   } else if (pk) {
     const pk = localStorage.getItem("metaPrivateKey");
     const wallet = new ethers.Wallet(pk);
@@ -256,7 +259,7 @@ export default function Wallet(props) {
         <QrcodeOutlined /> Receive
       </Button>
     );
-    privateKeyButton = (
+    privateKeyButton = allowPrivateKey ? (
       <Button
         key="hide"
         onClick={() => {
@@ -266,7 +269,7 @@ export default function Wallet(props) {
       >
         <KeyOutlined /> Hide
       </Button>
-    );
+    ) : null;
   } else {
     const inputStyle = {
       padding: 10,
@@ -305,7 +308,7 @@ export default function Wallet(props) {
         <QrcodeOutlined /> Receive
       </Button>
     );
-    privateKeyButton = (
+    privateKeyButton = allowPrivateKey ? (
       <Button
         key="hide"
         onClick={() => {
@@ -315,8 +318,40 @@ export default function Wallet(props) {
       >
         <KeyOutlined /> Private Key
       </Button>
-    );
+    ) : null;
   }
+
+  const modalFooterButtons = [
+    showImportButton,
+    privateKeyButton,
+    receiveButton,
+    <Button
+      key="submit"
+      type="primary"
+      disabled={!amount || !toAddress || qr}
+      loading={false}
+      onClick={() => {
+        const tx = Transactor(props.signer || props.provider);
+
+        let value;
+        try {
+          value = ethers.utils.parseEther("" + amount);
+        } catch (e) {
+          // failed to parseEther, try something else
+          value = ethers.utils.parseEther("" + parseFloat(amount).toFixed(8));
+        }
+
+        tx({
+          to: toAddress,
+          value,
+        });
+        setOpen(!open);
+        setQr();
+      }}
+    >
+      <SendOutlined /> Send
+    </Button>,
+  ].filter(Boolean);
 
   return (
     <span>
@@ -341,41 +376,7 @@ export default function Wallet(props) {
           setPK();
           setOpen(!open);
         }}
-        footer={
-          showImport
-            ? null
-            : [
-                showImportButton,
-                privateKeyButton,
-                receiveButton,
-                <Button
-                  key="submit"
-                  type="primary"
-                  disabled={!amount || !toAddress || qr}
-                  loading={false}
-                  onClick={() => {
-                    const tx = Transactor(props.signer || props.provider);
-
-                    let value;
-                    try {
-                      value = ethers.utils.parseEther("" + amount);
-                    } catch (e) {
-                      // failed to parseEther, try something else
-                      value = ethers.utils.parseEther("" + parseFloat(amount).toFixed(8));
-                    }
-
-                    tx({
-                      to: toAddress,
-                      value,
-                    });
-                    setOpen(!open);
-                    setQr();
-                  }}
-                >
-                  <SendOutlined /> Send
-                </Button>,
-              ]
-        }
+        footer={showImport ? null : modalFooterButtons}
       >
         {showImport ? <WalletImport setShowImport={setShowImport} /> : display}
       </Modal>

@@ -1,4 +1,5 @@
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { PrivyProvider } from "@privy-io/react-auth";
 import React from "react";
 import { ThemeSwitcherProvider } from "react-css-theme-switcher";
 import { BrowserRouter } from "react-router-dom";
@@ -12,6 +13,7 @@ const themes = {
 };
 
 const prevTheme = window.localStorage.getItem("theme");
+const privyAppId = process.env.REACT_APP_PRIVY_APP_ID || "";
 
 const subgraphUri = "http://localhost:8000/subgraphs/name/scaffold-eth/your-contract";
 
@@ -20,12 +22,18 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+if (!privyAppId) {
+  console.warn("Missing REACT_APP_PRIVY_APP_ID. Wallet login will not work until it is set.");
+}
+
 ReactDOM.render(
   <ApolloProvider client={client}>
     <ThemeSwitcherProvider themeMap={themes} defaultTheme={prevTheme || "light"}>
-      <BrowserRouter>
-        <App subgraphUri={subgraphUri} />
-      </BrowserRouter>
+      <PrivyProvider appId={privyAppId}>
+        <BrowserRouter>
+          <App subgraphUri={subgraphUri} />
+        </BrowserRouter>
+      </PrivyProvider>
     </ThemeSwitcherProvider>
   </ApolloProvider>,
   document.getElementById("root"),

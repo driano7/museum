@@ -2,8 +2,65 @@
   text-align: center;
 }
 
+html,
 body {
   margin: 0;
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#root,
+.App,
+.xoco-home,
+.xoco-section,
+.xoco-footer,
+.xoco-nav,
+.xoco-card,
+.ant-card,
+.ant-menu,
+.ant-btn,
+.ant-alert {
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.xoco-theme-toggle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.xoco-theme-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.xoco-theme-toggle-inline-wrap {
+  position: static;
+  z-index: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.xoco-theme-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.xoco-theme-icon-sun {
+  color: #f59e0b;
+}
+
+.xoco-theme-icon-moon {
+  color: #93c5fd;
 }
 
 code {

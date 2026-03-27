@@ -39,6 +39,12 @@ function mnemonic() {
   return "";
 }
 
+function deployerPrivateKey() {
+  const key = process.env.DEPLOYER_PRIVATE_KEY || "";
+  if (!key) return "";
+  return key.startsWith("0x") ? key : `0x${key}`;
+}
+
 module.exports = {
   defaultNetwork,
   /**
@@ -67,6 +73,11 @@ module.exports = {
         (you can put in a mnemonic here to set the deployer locally)
 
       */
+    },
+    monadTestnet: {
+      url: process.env.MONAD_RPC_URL || "https://testnet-rpc.monad.xyz",
+      chainId: 10143,
+      accounts: deployerPrivateKey() ? [deployerPrivateKey()] : [],
     },
     mainnet: {
       url: "https://mainnet.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)

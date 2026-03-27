@@ -1,0 +1,28 @@
+{
+  "name": "Museo Frida Kahlo - Pase Demo 2",
+  "description": "TicketNFT1155 demo for Museo Frida Kahlo. Free museum collectible on Monad testnet.",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20Frida%20Kahlo.JPG",
+  "external_url": "https://testnet.monad.xyz/",
+  "attributes": [
+    {
+      "trait_type": "City",
+      "value": "Ciudad de Mexico"
+    },
+    {
+      "trait_type": "Museum",
+      "value": "Museo Frida Kahlo"
+    },
+    {
+      "trait_type": "Location",
+      "value": "Coyoacan, CDMX"
+    },
+    {
+      "trait_type": "Series",
+      "value": "Demo 2"
+    },
+    {
+      "trait_type": "Collection",
+      "value": "Ticketeria CDMX Passport"
+    }
+  ]
+}

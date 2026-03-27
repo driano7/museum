@@ -1,140 +1,241 @@
-# 🏗 Scaffold-ETH
+# Ticketeria CDMX
 
-# 🚨🚨 This repository has been archived and is now read-only 🚨🚨
-
-You are still welcome to fork and use as a template but no more changes will be made to this repository.
-
-## 🎖 Scaffold-ETH 2 is the latest version, we recommend you fork: https://github.com/scaffold-eth/scaffold-eth-2
+Bilingual README (Español + English) aligned with the current implementation.
 
 ---
 
-> everything you need to build on Ethereum! 🚀
+## Español
 
-🧪 Quickly experiment with Solidity using a frontend that adapts to your smart contract:
+### Qué es
+Ticketeria CDMX es una dApp de ticketing cultural en Web3 para museos y recintos de Ciudad de Mexico, montada sobre Monad.
 
-![image](https://user-images.githubusercontent.com/2653167/124158108-c14ca380-da56-11eb-967e-69cde37ca8eb.png)
+Modelo actual:
+- Boletos NFT ERC1155 gratis (asistencia).
+- Boletos NFT premium de pago en USDC.
+- Precio local/internacional usando flujo CURP.
 
+### Lo que ya está implementado
+- Login/conexion con **Privy** desde el header (`Connect`).
+- Flujo de passport en homepage:
+  - Al conectar: muestra nombre mockeado **Donovan**.
+  - Muestra total de NFTs en wallet.
+  - Boton para mintear nuevos NFTs desde popup.
+- Coleccion demo de **21 NFTs gratis** (7 museos x 3 tokenIds, IDs `101..121`).
+- Popup de mint con:
+  - Museos del carrusel.
+  - Estado por museo (`x/3`) y estado por token (`Mint gratis`, `Ya en wallet`).
+- Metadata demo para wallet con imagenes de museos en:
+  - `packages/react-app/public/metadata`
+  - Script generador: `packages/react-app/scripts/generate_museum_metadata.js`
+- Onboarding CURP por wallet con persistencia local (`localStorage`).
+- Página `/tickets` para flujo free + paid (`mintFree`, `mintPaid`, `approve` USDC).
+- Página `/payments` demo (Stripe test + cripto demo) con UI tipo flip-card.
+- Theme toggle y landing animada (escena con iPhone/perifericos + carousel de museos/blog).
 
+### Contratos y red (testnet)
+- Contrato principal: `TicketNFT1155` (ERC1155).
+- Script Foundry (layout `contracts/`):  
+  `contracts/script/DeployTicketNFT.s.sol`  
+  Configura los 21 tokenIds gratis de demo.
+- Script Hardhat para testnet (stack activo del repo):  
+  `packages/hardhat/scripts/deployTicketNFT1155Testnet.js`
+  - Despliega contrato o usa uno existente (`TICKETS_CONTRACT_ADDRESS`).
+  - Configura los 21 tokens gratis (`101..121`).
 
-# 🏄‍♂️ Quick Start
+### Variables de entorno clave
 
-Prerequisites: [Node (v18 LTS)](https://nodejs.org/en/download/) plus [Yarn (v1.x)](https://classic.yarnpkg.com/en/docs/install/) and [Git](https://git-scm.com/downloads)
+Frontend (`packages/react-app/.sample.env`):
+- `REACT_APP_PRIVY_APP_ID`
+- `REACT_APP_PROVIDER` (Monad testnet RPC)
+- `REACT_APP_TICKETS_CONTRACT_ADDRESS`
+- `REACT_APP_STRIPE_PUBLISHABLE_KEY`
+- `REACT_APP_STRIPE_PRICE_IDS_MX`
+- `REACT_APP_STRIPE_PRICE_IDS_INTL`
+- `REACT_APP_CRYPTO_RECEIVER`
 
-🚨 If you are using a version < v18 you will need to remove `openssl-legacy-provider` from the `start` script in `package.json`
+Deploy (`packages/hardhat/example.env`):
+- `MONAD_RPC_URL=https://testnet-rpc.monad.xyz`
+- `DEPLOYER_PRIVATE_KEY=`
+- `USDC_ADDRESS=`
+- `TICKETS_CONTRACT_ADDRESS=` (opcional, para reusar contrato)
+- `BASE_URI=https://api.ticketeria.xyz/metadata/{id}.json`
 
-> 1️⃣ clone/fork 🏗 scaffold-eth:
+### Comandos útiles
 
+Instalar:
 ```bash
-git clone https://github.com/scaffold-eth/scaffold-eth.git
-```
-
-> 2️⃣ install and start your 👷‍ Hardhat chain:
-
-```bash
-cd scaffold-eth
 yarn install
-yarn chain
 ```
 
-> 3️⃣ in a second terminal window, start your 📱 frontend:
-
-🚨 if your contracts are not deployed to localhost, you will need to update the default network in `App.jsx` to match your default network in `hardhat-config.js`.
-
+Levantar app:
 ```bash
-cd scaffold-eth
-yarn start
+yarn dev
 ```
 
-> 4️⃣ in a third terminal window, 🛰 deploy your contract:
-
-🚨 if you are not deploying to localhost, you will need to run `yarn generate` first and then fund the deployer account. To view account balances, run `yarn account`. You will also need to update `hardhat-config.js` with the correct default network.
-
+Build frontend:
 ```bash
-cd scaffold-eth
-yarn deploy
+cd packages/react-app
+npm run build
 ```
 
-🔏 Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
+Compilar contratos Hardhat:
+```bash
+cd packages/hardhat
+npm run compile
+```
 
-📝 Edit your frontend `App.jsx` in `packages/react-app/src`
+Deploy/Setup 21 NFTs en Monad testnet (Hardhat):
+```bash
+cd packages/hardhat
+npm run deploy:monad:testnet
+```
 
-💼 Edit your deployment scripts in `packages/hardhat/deploy`
+Deploy con Foundry (si usas el workspace `contracts/`):
+```bash
+cd contracts
+forge script script/DeployTicketNFT.s.sol:DeployTicketNFT \
+  --rpc-url $MONAD_RPC_URL \
+  --broadcast -vvvv
+```
 
-📱 Open http://localhost:3000 to see the app
+Generar metadata de museos:
+```bash
+cd packages/react-app
+node scripts/generate_museum_metadata.js
+```
 
-🚨📡 To deploy to a public domain, use `yarn surge`. You will need to have a surge account and have the surge CLI installed. There is also the option to deploy to IPFS using `yarn ipfs` and `yarn s3` to deploy to an AWS bucket 🪣 There are scripts in the `packages/react-app/src/scripts` folder to help with this.`
+### Estructura principal
+- `packages/react-app/src/views/Home.jsx` -> landing + passport + popup mint.
+- `packages/react-app/src/views/Tickets.jsx` -> tickets free/pago on-chain.
+- `packages/react-app/src/views/Payments.jsx` -> demo de pagos.
+- `packages/react-app/src/components/CurpOnboardingModal.jsx` -> CURP onboarding.
+- `packages/react-app/src/hooks/useTicketContract.js` -> contratos tickets/USDC.
+- `contracts/src/TicketNFT1155.sol` -> contrato Foundry.
+- `contracts/script/DeployTicketNFT.s.sol` -> deploy/config 21 NFTs (Foundry).
+- `packages/hardhat/contracts/TicketNFT1155.sol` -> contrato en stack Hardhat.
+- `packages/hardhat/scripts/deployTicketNFT1155Testnet.js` -> deploy testnet + setup.
 
-# 📚 Documentation
-
-Documentation, tutorials, challenges, and many more resources, visit: [docs.scaffoldeth.io](https://docs.scaffoldeth.io)
-
-
-# 🍦 Other Flavors
-- [scaffold-eth-typescript](https://github.com/scaffold-eth/scaffold-eth-typescript)
-- [scaffold-eth-tailwind](https://github.com/stevenpslade/scaffold-eth-tailwind)
-- [scaffold-nextjs](https://github.com/scaffold-eth/scaffold-eth/tree/scaffold-nextjs)
-- [scaffold-chakra](https://github.com/scaffold-eth/scaffold-eth/tree/chakra-ui)
-- [Scaffold-ETH x Buildbear](https://github.com/BuildBearLabs/scaffold-eth)
-- [eth-hooks](https://github.com/scaffold-eth/eth-hooks)
-- [eth-components](https://github.com/scaffold-eth/eth-components)
-- [scaffold-eth-expo](https://github.com/scaffold-eth/scaffold-eth-expo)
-- [scaffold-eth-truffle](https://github.com/trufflesuite/scaffold-eth)
-
-
-
-# 🔭 Learning Solidity
-
-📕 Read the docs: https://docs.soliditylang.org
-
-📚 Go through each topic from [solidity by example](https://solidity-by-example.org) editing `YourContract.sol` in **🏗 scaffold-eth**
-
-- [Primitive Data Types](https://solidity-by-example.org/primitives/)
-- [Mappings](https://solidity-by-example.org/mapping/)
-- [Structs](https://solidity-by-example.org/structs/)
-- [Modifiers](https://solidity-by-example.org/function-modifier/)
-- [Events](https://solidity-by-example.org/events/)
-- [Inheritance](https://solidity-by-example.org/inheritance/)
-- [Payable](https://solidity-by-example.org/payable/)
-- [Fallback](https://solidity-by-example.org/fallback/)
-
-📧 Learn the [Solidity globals and units](https://docs.soliditylang.org/en/latest/units-and-global-variables.html)
-
-# 🛠 Buidl
-
-Check out all the [active branches](https://github.com/scaffold-eth/scaffold-eth/branches/active), [open issues](https://github.com/scaffold-eth/scaffold-eth/issues), and join/fund the 🏰 [BuidlGuidl](https://BuidlGuidl.com)!
-
-  
- - 🚤  [Follow the full Ethereum Speed Run](https://medium.com/@austin_48503/%EF%B8%8Fethereum-dev-speed-run-bd72bcba6a4c)
-
-
- - 🎟  [Create your first NFT](https://github.com/scaffold-eth/scaffold-eth/tree/simple-nft-example)
- - 🥩  [Build a staking smart contract](https://github.com/scaffold-eth/scaffold-eth/tree/challenge-1-decentralized-staking)
- - 🏵  [Deploy a token and vendor](https://github.com/scaffold-eth/scaffold-eth/tree/challenge-2-token-vendor)
- - 🎫  [Extend the NFT example to make a "buyer mints" marketplace](https://github.com/scaffold-eth/scaffold-eth/tree/buyer-mints-nft)
- - 🎲  [Learn about commit/reveal](https://github.com/scaffold-eth/scaffold-eth-examples/tree/commit-reveal-with-frontend)
- - ✍️  [Learn how ecrecover works](https://github.com/scaffold-eth/scaffold-eth-examples/tree/signature-recover)
- - 👩‍👩‍👧‍👧  [Build a multi-sig that uses off-chain signatures](https://github.com/scaffold-eth/scaffold-eth/tree/meta-multi-sig)
- - ⏳  [Extend the multi-sig to stream ETH](https://github.com/scaffold-eth/scaffold-eth/tree/streaming-meta-multi-sig)
- - ⚖️  [Learn how a simple DEX works](https://medium.com/@austin_48503/%EF%B8%8F-minimum-viable-exchange-d84f30bd0c90)
- - 🦍  [Ape into learning!](https://github.com/scaffold-eth/scaffold-eth/tree/aave-ape)
-
-# 💌 P.S.
-
-🌍 You need an RPC key for testnets and production deployments, create an [Alchemy](https://www.alchemy.com/) account and replace the value of `ALCHEMY_KEY = xxx` in `packages/react-app/src/constants.js` with your new key.
-
-📣 Make sure you update the `InfuraID` before you go to production. Huge thanks to [Infura](https://infura.io/) for our special account that fields 7m req/day!
-
-# 🏃💨 Speedrun Ethereum
-Register as a builder [here](https://speedrunethereum.com) and start on some of the challenges and build a portfolio.
-
-# 💬 Support Chat
-
-Join the telegram [support chat 💬](https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA) or buidlguidl [discord](https://discord.gg/pRsr6rwG) to ask questions and find others building with 🏗 scaffold-eth!
+### Notas
+- Stripe está en modo demo/test (no productivo).
+- CURP valida formato (regex), no consulta RENAPO.
+- Opciones de social login de Privy dependen de la configuracion del dashboard de tu app.
+- No expongas secretos backend en frontend (por ejemplo Privy App Secret).
 
 ---
 
-🙏 Please check out our [Gitcoin grant](https://gitcoin.co/grants/2851/scaffold-eth) too!
+## English
 
-### Automated with Gitpod
+### What it is
+Ticketeria CDMX is a Web3 cultural ticketing dApp for museums and venues in Mexico City, running on Monad.
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#github.com/scaffold-eth/scaffold-eth)
+Current model:
+- Free ERC1155 NFT tickets (attendance proof).
+- Paid premium NFT tickets in USDC.
+- Local vs international pricing through CURP flow.
+
+### What is already implemented
+- **Privy** login/connect from header (`Connect`).
+- Homepage passport flow:
+  - After connect: shows mock user name **Donovan**.
+  - Shows total NFTs in wallet.
+  - Lets user mint new NFTs from a popup.
+- Demo collection of **21 free NFTs** (7 museums x 3 tokenIds, IDs `101..121`).
+- Mint popup with:
+  - Carousel museums.
+  - Per-museum ownership (`x/3`) and per-token state.
+- Demo wallet metadata/images in:
+  - `packages/react-app/public/metadata`
+  - generator script: `packages/react-app/scripts/generate_museum_metadata.js`
+- Wallet-level CURP onboarding with local storage persistence.
+- `/tickets` page for free + paid flows (`mintFree`, `mintPaid`, USDC `approve`).
+- `/payments` demo page (Stripe test + demo crypto) with flip-card UI.
+- Theme toggle and animated landing (iPhone/peripherals scene + museum carousel/blog).
+
+### Contracts and network (testnet)
+- Main contract: `TicketNFT1155` (ERC1155).
+- Foundry script (in `contracts/` layout):  
+  `contracts/script/DeployTicketNFT.s.sol`  
+  Configures all 21 free demo tokenIds.
+- Hardhat script for testnet (active stack in this repo):  
+  `packages/hardhat/scripts/deployTicketNFT1155Testnet.js`
+  - Deploys new contract or attaches existing one (`TICKETS_CONTRACT_ADDRESS`).
+  - Configures the 21 free tokenIds (`101..121`).
+
+### Key environment variables
+
+Frontend (`packages/react-app/.sample.env`):
+- `REACT_APP_PRIVY_APP_ID`
+- `REACT_APP_PROVIDER` (Monad testnet RPC)
+- `REACT_APP_TICKETS_CONTRACT_ADDRESS`
+- `REACT_APP_STRIPE_PUBLISHABLE_KEY`
+- `REACT_APP_STRIPE_PRICE_IDS_MX`
+- `REACT_APP_STRIPE_PRICE_IDS_INTL`
+- `REACT_APP_CRYPTO_RECEIVER`
+
+Deploy (`packages/hardhat/example.env`):
+- `MONAD_RPC_URL=https://testnet-rpc.monad.xyz`
+- `DEPLOYER_PRIVATE_KEY=`
+- `USDC_ADDRESS=`
+- `TICKETS_CONTRACT_ADDRESS=` (optional, reuse contract)
+- `BASE_URI=https://api.ticketeria.xyz/metadata/{id}.json`
+
+### Useful commands
+
+Install:
+```bash
+yarn install
+```
+
+Run app:
+```bash
+yarn dev
+```
+
+Frontend build:
+```bash
+cd packages/react-app
+npm run build
+```
+
+Hardhat compile:
+```bash
+cd packages/hardhat
+npm run compile
+```
+
+Deploy/setup 21 NFTs on Monad testnet (Hardhat):
+```bash
+cd packages/hardhat
+npm run deploy:monad:testnet
+```
+
+Deploy with Foundry (if you use the `contracts/` workspace):
+```bash
+cd contracts
+forge script script/DeployTicketNFT.s.sol:DeployTicketNFT \
+  --rpc-url $MONAD_RPC_URL \
+  --broadcast -vvvv
+```
+
+Generate museum metadata:
+```bash
+cd packages/react-app
+node scripts/generate_museum_metadata.js
+```
+
+### Main structure
+- `packages/react-app/src/views/Home.jsx` -> landing + passport + mint popup.
+- `packages/react-app/src/views/Tickets.jsx` -> on-chain free/paid ticket minting.
+- `packages/react-app/src/views/Payments.jsx` -> payments demo.
+- `packages/react-app/src/components/CurpOnboardingModal.jsx` -> CURP onboarding.
+- `packages/react-app/src/hooks/useTicketContract.js` -> ticket/USDC contract hooks.
+- `contracts/src/TicketNFT1155.sol` -> Foundry contract.
+- `contracts/script/DeployTicketNFT.s.sol` -> Foundry deploy/setup 21 NFTs.
+- `packages/hardhat/contracts/TicketNFT1155.sol` -> Hardhat contract.
+- `packages/hardhat/scripts/deployTicketNFT1155Testnet.js` -> testnet deploy/setup.
+
+### Notes
+- Stripe is demo/test mode only.
+- CURP check is format-only (regex), not official RENAPO verification.
+- Privy social login options depend on your app settings in Privy dashboard.
+- Never expose backend secrets in frontend env files (e.g. Privy App Secret).

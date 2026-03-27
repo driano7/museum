@@ -25,6 +25,14 @@ const localRpcUrl = process.env.REACT_APP_CODESPACES
   : "http://" + (global.window ? window.location.hostname : "localhost") + ":8545";
 
 export const NETWORKS = {
+  monadTestnet: {
+    name: "monadTestnet",
+    color: "#8b5cf6",
+    chainId: 10143,
+    rpcUrl: process.env.REACT_APP_PROVIDER || "https://testnet-rpc.monad.xyz",
+    blockExplorer: "https://testnet.monadscan.com/",
+    faucet: "https://faucet.monad.xyz",
+  },
   localhost: {
     name: "localhost",
     color: "#666666",

@@ -1,0 +1,143 @@
+.xoco-pay-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(17, 13, 9, 0.58);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.xoco-pay-modal-shell {
+  width: min(980px, 100%);
+  border-radius: 24px;
+  border: 1px solid var(--xp-line, rgba(50, 0, 0, 0.18));
+  background: linear-gradient(180deg, var(--xp-paper, #f8f0e0) 0%, var(--xp-paper-strong, #efe2ca) 100%);
+  box-shadow: 0 30px 90px rgba(20, 14, 10, 0.45);
+  padding: 22px;
+  position: relative;
+}
+
+.xoco-pay-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--xp-line, rgba(50, 0, 0, 0.18));
+  background: var(--xp-soft-bg, #fbf5ea);
+  color: var(--xp-ink, #4f3c2a);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.xoco-pay-modal-head {
+  margin-bottom: 16px;
+  max-width: 720px;
+}
+
+.xoco-pay-modal-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--xp-muted, #8a7357);
+}
+
+.xoco-pay-modal-head h3 {
+  margin: 8px 0 6px;
+  color: var(--xp-ink, #4f3c2a);
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+}
+
+.xoco-pay-modal-head p {
+  margin: 0;
+  color: var(--xp-body, #5c4937);
+}
+
+.xoco-pay-modal-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.xoco-pay-card-wrap {
+  align-self: center;
+}
+
+.xoco-pay-form {
+  border: 1px solid var(--xp-line, rgba(50, 0, 0, 0.18));
+  background: var(--xp-card, #f7efdf);
+  border-radius: 18px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.xoco-pay-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--xp-ink, #4f3c2a);
+}
+
+.xoco-pay-form input {
+  border: 1px solid var(--xp-line, rgba(50, 0, 0, 0.18));
+  background: var(--xp-soft-bg, #fbf5ea);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--xp-ink, #4f3c2a);
+  font-size: 14px;
+  outline: none;
+}
+
+.xoco-pay-form input:focus {
+  border-color: color-mix(in oklab, var(--xp-burgundy, #320000) 58%, white 42%);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--xp-burgundy, #320000) 18%, transparent 82%);
+}
+
+.xoco-pay-form-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.xoco-pay-form-actions {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+[data-theme-mode="dark"] .xoco-pay-modal-backdrop {
+  background: rgba(7, 6, 5, 0.66);
+}
+
+[data-theme-mode="dark"] .xoco-pay-modal-close {
+  background: #17120e;
+}
+
+@media (max-width: 900px) {
+  .xoco-pay-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .xoco-pay-modal-shell {
+    padding: 16px;
+  }
+
+  .xoco-pay-modal-close {
+    top: 8px;
+    right: 8px;
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Palacio de Bellas Artes - Pase Demo 2",
+  "description": "TicketNFT1155 demo for Palacio de Bellas Artes. Free museum collectible on Monad testnet.",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palacio%20de%20Bellas%20Artes%2C%20Mexico%20City%2C%20MX.jpg",
+  "external_url": "https://testnet.monad.xyz/",
+  "attributes": [
+    {
+      "trait_type": "City",
+      "value": "Ciudad de Mexico"
+    },
+    {
+      "trait_type": "Museum",
+      "value": "Palacio de Bellas Artes"
+    },
+    {
+      "trait_type": "Location",
+      "value": "Centro Historico, CDMX"
+    },
+    {
+      "trait_type": "Series",
+      "value": "Demo 2"
+    },
+    {
+      "trait_type": "Collection",
+      "value": "Ticketeria CDMX Passport"
+    }
+  ]
+}

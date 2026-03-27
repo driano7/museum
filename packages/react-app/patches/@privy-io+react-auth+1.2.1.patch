@@ -1,0 +1,63 @@
+diff --git a/node_modules/@privy-io/react-auth/dist/index.js b/node_modules/@privy-io/react-auth/dist/index.js
+index dcca8b1..b500a73 100644
+--- a/node_modules/@privy-io/react-auth/dist/index.js
++++ b/node_modules/@privy-io/react-auth/dist/index.js
+@@ -1471,7 +1471,7 @@ var Loader = import_styled_components4.default.span`
+   height: 82px;
+   border-width: 4px;
+   border-style: solid;
+-  border-color: ${(props) => props.color ?? "var(--primary-color)"};
++  border-color: ${(props) => (props.color !== null && props.color !== void 0 ? props.color : "var(--primary-color)")};
+   border-bottom-color: transparent;
+   border-radius: 50%;
+   display: inline-block;
+@@ -6036,14 +6036,20 @@ var LoginModal = () => {
+   );
+ };
+ var ModalWrapper = import_styled_components17.default.div`
+-  position: absolute;
++  position: fixed;
+   top: 0;
+   left: 0;
+   width: 100vw;
+   height: 100vh;
++  padding: 24px 16px;
++  z-index: 2147483647;
+   display: flex;
+   justify-content: center;
+   align-items: center;
++  overflow-y: auto;
++  overflow-x: hidden;
++  background: rgba(8, 10, 14, 0.42);
++  backdrop-filter: blur(2px);
+   color: var(--text-dark-gray);
+ 
+   // modern-normalize, from https://github.com/sindresorhus/modern-normalize/blob/main/modern-normalize.css
+@@ -6148,8 +6154,10 @@ var ModalWrapper = import_styled_components17.default.div`
+ `;
+ var Modal = import_styled_components17.default.div`
+   line-height: 20px;
+-  width: 360px;
++  width: min(360px, calc(100vw - 32px));
+   height: ${(props) => props.compact ? "auto" : "620px"};
++  max-height: calc(100vh - 48px);
++  overflow-y: auto;
+   text-align: center;
+   display: flex;
+   flex-direction: column;
+@@ -6157,6 +6165,7 @@ var Modal = import_styled_components17.default.div`
+   background: #ffffff;
+   box-shadow: 0px 8px 36px rgba(55, 65, 81, 0.15);
+   border-radius: 24px;
++  margin: auto;
+ 
+   /* Mobile */
+   @media (max-width: 440px) {
+@@ -6164,6 +6173,7 @@ var Modal = import_styled_components17.default.div`
+     margin-top: auto;
+     border-radius: 24px 24px 0 0;
+     height: auto;
++    max-height: calc(100vh - 8px);
+   }
+ `;
+ 

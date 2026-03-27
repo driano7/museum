@@ -1,0 +1,28 @@
+{
+  "name": "Museo Soumaya - Pase Demo 3",
+  "description": "TicketNFT1155 demo for Museo Soumaya. Free museum collectible on Monad testnet.",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20Soumaya%20Plaza%20Carso%20Exterior.jpg",
+  "external_url": "https://testnet.monad.xyz/",
+  "attributes": [
+    {
+      "trait_type": "City",
+      "value": "Ciudad de Mexico"
+    },
+    {
+      "trait_type": "Museum",
+      "value": "Museo Soumaya"
+    },
+    {
+      "trait_type": "Location",
+      "value": "Plaza Carso, CDMX"
+    },
+    {
+      "trait_type": "Series",
+      "value": "Demo 3"
+    },
+    {
+      "trait_type": "Collection",
+      "value": "Ticketeria CDMX Passport"
+    }
+  ]
+}

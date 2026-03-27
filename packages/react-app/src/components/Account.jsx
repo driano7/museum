@@ -48,20 +48,15 @@ export default function Account({
   mainnetProvider,
   price,
   minimized,
-  web3Modal,
-  loadWeb3Modal,
+  isConnected,
+  authReady,
+  connectionType,
+  connectWithPrivy,
   logoutOfWeb3Modal,
   blockExplorer,
   isContract,
 }) {
   const { currentTheme } = useThemeSwitcher();
-
-  let accountButtonInfo;
-  if (web3Modal?.cachedProvider) {
-    accountButtonInfo = { name: "Logout", action: logoutOfWeb3Modal };
-  } else {
-    accountButtonInfo = { name: "Connect", action: loadWeb3Modal };
-  }
 
   const display = !minimized && (
     <span>
@@ -79,6 +74,8 @@ export default function Account({
           color={currentTheme === "light" ? "#1890ff" : "#2caad9"}
           size={22}
           padding={"0px"}
+          showPrivateKey={false}
+          showImport={false}
         />
       )}
     </span>
@@ -87,9 +84,13 @@ export default function Account({
   return (
     <div style={{ display: "flex" }}>
       {display}
-      {web3Modal && (
-        <Button style={{ marginLeft: 8 }} shape="round" onClick={accountButtonInfo.action}>
-          {accountButtonInfo.name}
+      {isConnected ? (
+        <Button style={{ marginLeft: 8 }} shape="round" onClick={logoutOfWeb3Modal}>
+          Logout {connectionType === "privy" ? "(Privy)" : ""}
+        </Button>
+      ) : (
+        <Button style={{ marginLeft: 8 }} shape="round" onClick={connectWithPrivy} disabled={!authReady}>
+          Connect
         </Button>
       )}
     </div>

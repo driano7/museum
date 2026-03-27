@@ -1,0 +1,28 @@
+{
+  "name": "Museo Tamayo - Pase Demo 3",
+  "description": "TicketNFT1155 demo for Museo Tamayo. Free museum collectible on Monad testnet.",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Facade%20-%20Museo%20Tamayo%20Arte%20Contempor%C3%A1neo%20-%20Mexico%20City%202024.jpg",
+  "external_url": "https://testnet.monad.xyz/",
+  "attributes": [
+    {
+      "trait_type": "City",
+      "value": "Ciudad de Mexico"
+    },
+    {
+      "trait_type": "Museum",
+      "value": "Museo Tamayo"
+    },
+    {
+      "trait_type": "Location",
+      "value": "Chapultepec, CDMX"
+    },
+    {
+      "trait_type": "Series",
+      "value": "Demo 3"
+    },
+    {
+      "trait_type": "Collection",
+      "value": "Ticketeria CDMX Passport"
+    }
+  ]
+}

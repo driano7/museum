@@ -1,0 +1,28 @@
+{
+  "name": "Museo del Templo Mayor - Pase Demo 3",
+  "description": "TicketNFT1155 demo for Museo del Templo Mayor. Free museum collectible on Monad testnet.",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20del%20Templo%20Mayor%20-%20Ciudad%20de%20M%C3%A9xico.jpg",
+  "external_url": "https://testnet.monad.xyz/",
+  "attributes": [
+    {
+      "trait_type": "City",
+      "value": "Ciudad de Mexico"
+    },
+    {
+      "trait_type": "Museum",
+      "value": "Museo del Templo Mayor"
+    },
+    {
+      "trait_type": "Location",
+      "value": "Centro Historico, CDMX"
+    },
+    {
+      "trait_type": "Series",
+      "value": "Demo 3"
+    },
+    {
+      "trait_type": "Collection",
+      "value": "Ticketeria CDMX Passport"
+    }
+  ]
+}

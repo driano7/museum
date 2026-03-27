@@ -1,0 +1,28 @@
+{
+  "name": "Museo Nacional de Antropologia - Pase Demo 2",
+  "description": "TicketNFT1155 demo for Museo Nacional de Antropologia. Free museum collectible on Monad testnet.",
+  "image": "https://commons.wikimedia.org/wiki/Special:FilePath/National%20Museum%20of%20Anthropology%20Mexico%20City.jpg",
+  "external_url": "https://testnet.monad.xyz/",
+  "attributes": [
+    {
+      "trait_type": "City",
+      "value": "Ciudad de Mexico"
+    },
+    {
+      "trait_type": "Museum",
+      "value": "Museo Nacional de Antropologia"
+    },
+    {
+      "trait_type": "Location",
+      "value": "Chapultepec, CDMX"
+    },
+    {
+      "trait_type": "Series",
+      "value": "Demo 2"
+    },
+    {
+      "trait_type": "Collection",
+      "value": "Ticketeria CDMX Passport"
+    }
+  ]
+}
