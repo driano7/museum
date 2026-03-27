@@ -11,6 +11,7 @@ import { CurpOnboardingModal } from "./components";
 import { NETWORKS } from "./constants";
 import { getRPCPollTime, Transactor } from "./helpers";
 import { useGasPrice, useStaticJsonRPC } from "./hooks";
+import { setStoredTicketeriaUser } from "./lib/ticketeriaUserStorage";
 import { Home, Payments, Tickets } from "./views";
 
 const initialNetwork = NETWORKS.monadTestnet || NETWORKS.localhost;
@@ -42,6 +43,15 @@ function App() {
 
   const localProviderPollingTime = getRPCPollTime(localProvider);
 
+  const scrollToPassportDemo = useCallback(() => {
+    if (typeof window === "undefined" || window.location.pathname !== "/") return;
+
+    window.setTimeout(() => {
+      const target = document.querySelector("#passport-demo");
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }, []);
+
   const connectWithPrivy = useCallback(() => {
     if (FORCE_MOCK_CONNECT) {
       setIsMockConnectOpen(true);
@@ -57,32 +67,43 @@ function App() {
     login();
   }, [authReady, login]);
 
-  const handleMockWalletSelection = useCallback(walletName => {
-    const candidateAddresses = [
-      process.env.REACT_APP_MOCK_DEPLOYER_ADDRESS,
-      process.env.REACT_APP_MOCK_USDC_ADDRESS,
-    ]
-      .map(value => String(value || "").trim())
-      .filter(isAddressLike);
+  const handleMockWalletSelection = useCallback(
+    walletName => {
+      if (isMockConnecting) return;
 
-    if (isAddressLike(FALLBACK_MOCK_ADDRESS)) {
-      candidateAddresses.push(FALLBACK_MOCK_ADDRESS);
-    }
+      const candidateAddresses = [process.env.REACT_APP_MOCK_DEPLOYER_ADDRESS, process.env.REACT_APP_MOCK_USDC_ADDRESS]
+        .map(value => String(value || "").trim())
+        .filter(isAddressLike);
 
-    const selectedAddress =
-      candidateAddresses[Math.floor(Math.random() * candidateAddresses.length)] || FALLBACK_MOCK_ADDRESS;
+      if (isAddressLike(FALLBACK_MOCK_ADDRESS)) {
+        candidateAddresses.push(FALLBACK_MOCK_ADDRESS);
+      }
 
-    setIsMockConnecting(true);
-    setMockConnectedWalletName(walletName);
+      const selectedAddress =
+        candidateAddresses[Math.floor(Math.random() * candidateAddresses.length)] || FALLBACK_MOCK_ADDRESS;
 
-    window.setTimeout(() => {
-      setConnectionType(`mock-${walletName.toLowerCase()}`);
-      setInjectedProvider(undefined);
-      setAddress(selectedAddress);
-      setIsMockConnecting(false);
-      setIsMockConnectOpen(false);
-    }, 1300);
-  }, []);
+      setIsMockConnecting(true);
+      setMockConnectedWalletName(walletName);
+
+      window.setTimeout(() => {
+        try {
+          setConnectionType(`mock-${walletName.toLowerCase()}`);
+          setInjectedProvider(undefined);
+          setAddress(selectedAddress);
+          setStoredTicketeriaUser(selectedAddress, {
+            walletAddress: selectedAddress,
+            curp: "",
+            isMexican: true,
+          });
+        } finally {
+          setIsMockConnecting(false);
+          setIsMockConnectOpen(false);
+          scrollToPassportDemo();
+        }
+      }, 320);
+    },
+    [isMockConnecting, scrollToPassportDemo],
+  );
 
   const logoutOfWeb3Modal = useCallback(async () => {
     if (FORCE_MOCK_CONNECT) {
@@ -143,7 +164,7 @@ function App() {
     let mounted = true;
 
     async function syncAddress() {
-      if (FORCE_MOCK_CONNECT && connectionType?.startsWith("mock")) {
+      if (FORCE_MOCK_CONNECT) {
         return;
       }
 
@@ -161,11 +182,11 @@ function App() {
     return () => {
       mounted = false;
     };
-  }, [connectionType, userSigner]);
+  }, [userSigner]);
 
   return (
     <div className="App">
-      <CurpOnboardingModal walletAddress={address} />
+      {!FORCE_MOCK_CONNECT ? <CurpOnboardingModal walletAddress={address} /> : null}
 
       <Modal
         title="Conecta tu wallet (Demo)"
@@ -213,7 +234,8 @@ function App() {
               tx,
               mainnetProvider,
               price,
-              authReady,
+              authReady: FORCE_MOCK_CONNECT ? true : authReady,
+              forceEnableConnect: FORCE_MOCK_CONNECT,
               connectionType,
               connectWithPrivy,
               logoutOfWeb3Modal,

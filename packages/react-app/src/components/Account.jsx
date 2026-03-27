@@ -50,6 +50,7 @@ export default function Account({
   minimized,
   isConnected,
   authReady,
+  forceEnableConnect,
   connectionType,
   connectWithPrivy,
   logoutOfWeb3Modal,
@@ -89,7 +90,12 @@ export default function Account({
           Logout {connectionType === "privy" ? "(Privy)" : ""}
         </Button>
       ) : (
-        <Button style={{ marginLeft: 8 }} shape="round" onClick={connectWithPrivy} disabled={!authReady}>
+        <Button
+          style={{ marginLeft: 8 }}
+          shape="round"
+          onClick={connectWithPrivy}
+          disabled={!forceEnableConnect && !authReady}
+        >
           Connect
         </Button>
       )}

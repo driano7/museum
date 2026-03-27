@@ -14,8 +14,7 @@ import { message } from "antd";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion/dist/framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Account } from "../components";
-import { DEFAULT_TICKETS_CONTRACT_ADDRESS } from "../constants";
+import { DEFAULT_TICKETS_CONTRACT_ADDRESS, NETWORKS } from "../constants";
 import useTicketContract from "../hooks/useTicketContract";
 import PaymentDemoPopup from "../components/PaymentDemoPopup";
 import ThemeSwitch from "../components/ThemeSwitch";
@@ -425,7 +424,9 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
   const reduceMotion = useReducedMotion();
   const walletAddress = accountProps?.address;
   const tx = accountProps?.tx;
+  const logoutOfWeb3Modal = accountProps?.logoutOfWeb3Modal;
   const ticketsContractAddress = DEFAULT_TICKETS_CONTRACT_ADDRESS;
+  const blockExplorerBase = accountProps?.blockExplorer || NETWORKS.monadTestnet.blockExplorer;
 
   const { ticketReadContract, ticketWriteContract } = useTicketContract({
     contractAddress: ticketsContractAddress,
@@ -444,6 +445,7 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
   const [mintingTokenId, setMintingTokenId] = useState(null);
   const [revealedPassportTokenIds, setRevealedPassportTokenIds] = useState([]);
   const [activeStampEffect, setActiveStampEffect] = useState(null);
+  const [mintResultPopup, setMintResultPopup] = useState(null);
   const knownOwnedTokenIdsRef = useRef(new Set());
   const stampTimersRef = useRef([]);
 
@@ -651,6 +653,35 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const handleScrollToMuseums = () => {
+    const target = document.querySelector("#museos-destacados");
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleOpenMintPopup = () => {
+    if (!walletAddress) {
+      message.info("Conecta tu wallet para abrir el mint de NFTs.");
+      if (typeof onAgendaDemoClick === "function") {
+        onAgendaDemoClick();
+      }
+      return;
+    }
+    setIsPassportMintPopupOpen(true);
+  };
+
+  const handleHeaderWalletAction = () => {
+    if (isConnected) {
+      if (typeof logoutOfWeb3Modal === "function") {
+        logoutOfWeb3Modal();
+      }
+      return;
+    }
+
+    if (typeof onAgendaDemoClick === "function") {
+      onAgendaDemoClick();
+    }
+  };
+
   const isDockActive = href => {
     if (href === "#blog-museos") {
       return activeHash === "#blog-museos" || activeHash.startsWith("#blog-");
@@ -725,6 +756,28 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
 
   const revealedTokenIdSet = useMemo(() => new Set(revealedPassportTokenIds), [revealedPassportTokenIds]);
 
+  const openMintResultPopup = useCallback(
+    ({ tokenId, txHash, mode }) => {
+      const token = tokenMetadataById[tokenId];
+      const safeBase = String(blockExplorerBase || "").replace(/\/+$/, "");
+      const txUrl = txHash ? `${safeBase}/tx/${txHash}` : "";
+      const contractUrl = ticketsContractAddress ? `${safeBase}/address/${ticketsContractAddress}` : "";
+
+      setMintResultPopup({
+        mode,
+        tokenId,
+        txHash: txHash || "",
+        txUrl,
+        contractUrl,
+        museumName: token?.museumName || "Museo",
+        tokenLabel: token?.label || `NFT #${tokenId}`,
+        tokenImage: token?.image || "",
+        walletAddress: walletAddress || "",
+      });
+    },
+    [blockExplorerBase, ticketsContractAddress, tokenMetadataById, walletAddress],
+  );
+
   const handleMintPassportNft = async tokenId => {
     if (!walletAddress) {
       message.error("Conecta tu wallet para mintear.");
@@ -744,14 +797,23 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
       }));
       window.localStorage.setItem(getMockPassportStorageKey(walletAddress), JSON.stringify(nextMockBalances));
       message.success(`NFT #${tokenId} minteado en modo demo.`);
+      setIsPassportMintPopupOpen(false);
+      openMintResultPopup({ tokenId, mode: "demo" });
       return;
     }
 
     setMintingTokenId(tokenId);
     try {
-      await tx(ticketWriteContract.mintFree(tokenId));
+      const txResult = await tx(ticketWriteContract.mintFree(tokenId));
+      if (!txResult?.hash) {
+        message.error("No se pudo confirmar la transacción en cadena.");
+        return;
+      }
+
       message.success(`NFT #${tokenId} mintado para Donovan.`);
       await reloadPassportBalances();
+      setIsPassportMintPopupOpen(false);
+      openMintResultPopup({ tokenId, txHash: txResult.hash, mode: "onchain" });
     } catch (error) {
       const reason =
         error?.error?.message || error?.data?.message || error?.message || "No fue posible mintear el NFT.";
@@ -847,9 +909,13 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
           <div className="xoco-nav-actions">
             <ThemeSwitch inline />
             {isConnected ? <span className="xoco-user-chip">Donovan</span> : null}
-            <div className="xoco-wallet-inline">
-              <Account {...accountProps} isConnected={isConnected} minimized />
-            </div>
+            <button
+              type="button"
+              className="xoco-button xoco-button-primary xoco-header-wallet-btn"
+              onClick={handleHeaderWalletAction}
+            >
+              {isConnected ? "Cerrar sesión" : "Conecta tu wallet"}
+            </button>
           </div>
         </div>
 
@@ -988,16 +1054,12 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
               </div>
 
               <div className="xoco-passport-cta-row">
-                <button
-                  type="button"
-                  className="xoco-button xoco-button-primary"
-                  onClick={() => setIsPassportMintPopupOpen(true)}
-                >
+                <button type="button" className="xoco-button xoco-button-primary" onClick={handleOpenMintPopup}>
                   Mint NFT de museo
                 </button>
-                <a href="#museos-destacados" className="xoco-button xoco-button-secondary">
+                <button type="button" className="xoco-button xoco-button-secondary" onClick={handleScrollToMuseums}>
                   Ver museos
-                </a>
+                </button>
               </div>
 
               <AnimatePresence>
@@ -1374,6 +1436,85 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
                   </div>
                 </article>
               ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {mintResultPopup ? (
+        <div
+          className="xoco-mint-result-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirmacion de mint NFT"
+          onClick={() => setMintResultPopup(null)}
+        >
+          <div className="xoco-mint-result-shell" onClick={event => event.stopPropagation()}>
+            <button
+              type="button"
+              className="xoco-mint-result-close"
+              onClick={() => setMintResultPopup(null)}
+              aria-label="Cerrar confirmacion de mint"
+            >
+              ×
+            </button>
+
+            <div className="xoco-mint-result-head">
+              <span className="xoco-badge">Mint completado</span>
+              <h3>NFT emitido correctamente</h3>
+              <p>
+                {mintResultPopup.mode === "onchain"
+                  ? "La transacción se confirmó en Monad Testnet. Puedes validarla con el hash:"
+                  : "Modo demo activo: se simuló el mint sin transacción on-chain."}
+              </p>
+            </div>
+
+            <div className="xoco-mint-result-grid">
+              <div className="xoco-mint-result-media">
+                {mintResultPopup.tokenImage ? (
+                  <img src={mintResultPopup.tokenImage} alt={mintResultPopup.museumName} loading="lazy" />
+                ) : null}
+              </div>
+
+              <div className="xoco-mint-result-details">
+                <p>
+                  <strong>Museo:</strong> {mintResultPopup.museumName}
+                </p>
+                <p>
+                  <strong>NFT:</strong> {mintResultPopup.tokenLabel} #{mintResultPopup.tokenId}
+                </p>
+                <p>
+                  <strong>Wallet:</strong> {mintResultPopup.walletAddress || "N/A"}
+                </p>
+                {mintResultPopup.txHash ? (
+                  <p>
+                    <strong>Hash:</strong> {mintResultPopup.txHash}
+                  </p>
+                ) : null}
+
+                <div className="xoco-mint-result-links">
+                  {mintResultPopup.txUrl ? (
+                    <a
+                      href={mintResultPopup.txUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="xoco-button xoco-button-primary"
+                    >
+                      Ver hash en explorer
+                    </a>
+                  ) : null}
+                  {mintResultPopup.contractUrl ? (
+                    <a
+                      href={mintResultPopup.contractUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="xoco-button xoco-button-secondary"
+                    >
+                      Ver contrato
+                    </a>
+                  ) : null}
+                </div>
+              </div>
             </div>
           </div>
         </div>

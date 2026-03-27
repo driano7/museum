@@ -42,7 +42,8 @@
 .xoco-nav {
   position: sticky;
   top: 12px;
-  z-index: 80;
+  z-index: 260;
+  isolation: isolate;
   border: 1px solid var(--xp-line);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(248, 240, 224, 0.95), rgba(239, 226, 202, 0.92));
@@ -60,6 +61,8 @@
   justify-content: space-between;
   gap: 16px;
   width: 100%;
+  position: relative;
+  z-index: 2;
 }
 
 .xoco-nav-brand {
@@ -101,6 +104,8 @@
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
 }
 
 .xoco-nav-link-pill {
@@ -142,11 +147,21 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 }
 
 .xoco-wallet-inline {
   display: inline-flex;
   align-items: center;
+}
+
+.xoco-header-wallet-btn {
+  min-height: 40px;
+  border-radius: 12px;
+  padding-inline: 16px;
+  white-space: nowrap;
 }
 
 .xoco-wallet-inline .ant-btn-round {
@@ -172,6 +187,8 @@
   gap: 8px;
   border-top: 1px dashed var(--xp-line);
   padding-top: 9px;
+  position: relative;
+  z-index: 2;
 }
 
 .xoco-nav-blog-pill {
@@ -521,6 +538,9 @@
 
 .xoco-passport-section {
   background: var(--xp-muted-section);
+  position: relative;
+  z-index: 30;
+  pointer-events: auto;
 }
 
 .xoco-passport-top {
@@ -625,6 +645,8 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
 }
 
 .xoco-passport-gallery-shell {
@@ -863,6 +885,8 @@
   display: grid;
   gap: 4px;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 
 .xoco-passport-token-btn span {
@@ -889,6 +913,92 @@
 
 .xoco-passport-token-btn.is-owned {
   background: color-mix(in oklab, var(--xp-burgundy) 8%, var(--xp-soft-bg) 92%);
+}
+
+.xoco-mint-result-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  background: rgba(14, 10, 8, 0.66);
+  backdrop-filter: blur(7px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.xoco-mint-result-shell {
+  position: relative;
+  width: min(760px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--xp-line);
+  background: linear-gradient(180deg, var(--xp-paper) 0%, var(--xp-paper-strong) 100%);
+  box-shadow: 0 28px 84px rgba(0, 0, 0, 0.35);
+  padding: 18px;
+}
+
+.xoco-mint-result-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--xp-line);
+  background: var(--xp-soft-bg);
+  color: var(--xp-ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.xoco-mint-result-head h3 {
+  margin: 10px 0 8px;
+  color: var(--xp-ink);
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.xoco-mint-result-head p {
+  margin: 0;
+  color: var(--xp-body);
+}
+
+.xoco-mint-result-grid {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 220px 1fr;
+}
+
+.xoco-mint-result-media {
+  border: 1px solid var(--xp-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--xp-card);
+  min-height: 155px;
+}
+
+.xoco-mint-result-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.xoco-mint-result-details p {
+  margin: 0 0 8px;
+  color: var(--xp-body);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.xoco-mint-result-details strong {
+  color: var(--xp-ink);
+}
+
+.xoco-mint-result-links {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .xoco-museum-carousel-wrap {
@@ -1573,6 +1683,10 @@
   }
 
   .xoco-passport-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .xoco-mint-result-grid {
     grid-template-columns: 1fr;
   }
 

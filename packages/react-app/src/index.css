@@ -48,11 +48,16 @@ body {
   z-index: auto;
   display: inline-flex;
   align-items: center;
+  pointer-events: auto;
 }
 
 .xoco-theme-icon {
   width: 20px;
   height: 20px;
+}
+
+.xoco-theme-toggle {
+  pointer-events: auto;
 }
 
 .xoco-theme-icon-sun {
