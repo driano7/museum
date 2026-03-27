@@ -343,6 +343,7 @@ const plans = [
 ];
 
 const EASE_OUT = [0.22, 1, 0.36, 1];
+const DEMO_MINT_LOADING_MS = 1200;
 
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 const getMockPassportStorageKey = wallet => `ticketeria:mock-passport:${String(wallet || "").toLowerCase()}`;
@@ -755,6 +756,10 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
   }, [demoTokenIds, passportBalances, tokenMetadataById]);
 
   const revealedTokenIdSet = useMemo(() => new Set(revealedPassportTokenIds), [revealedPassportTokenIds]);
+  const mintingTokenMeta = useMemo(
+    () => (mintingTokenId ? tokenMetadataById[mintingTokenId] || null : null),
+    [mintingTokenId, tokenMetadataById],
+  );
 
   const openMintResultPopup = useCallback(
     ({ tokenId, txHash, mode }) => {
@@ -784,26 +789,28 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
       return;
     }
 
-    if (!ticketWriteContract || !tx) {
-      const nextMockBalances = {
-        ...mockPassportBalances,
-        [tokenId]: Math.max(1, Number(mockPassportBalances[tokenId] || 0)),
-      };
-
-      setMockPassportBalances(nextMockBalances);
-      setPassportBalances(prev => ({
-        ...prev,
-        [tokenId]: Math.max(1, Number(prev[tokenId] || 0)),
-      }));
-      window.localStorage.setItem(getMockPassportStorageKey(walletAddress), JSON.stringify(nextMockBalances));
-      message.success(`NFT #${tokenId} minteado en modo demo.`);
-      setIsPassportMintPopupOpen(false);
-      openMintResultPopup({ tokenId, mode: "demo" });
-      return;
-    }
-
     setMintingTokenId(tokenId);
     try {
+      if (!ticketWriteContract || !tx) {
+        await new Promise(resolve => window.setTimeout(resolve, DEMO_MINT_LOADING_MS));
+
+        const nextMockBalances = {
+          ...mockPassportBalances,
+          [tokenId]: Math.max(1, Number(mockPassportBalances[tokenId] || 0)),
+        };
+
+        setMockPassportBalances(nextMockBalances);
+        setPassportBalances(prev => ({
+          ...prev,
+          [tokenId]: Math.max(1, Number(prev[tokenId] || 0)),
+        }));
+        window.localStorage.setItem(getMockPassportStorageKey(walletAddress), JSON.stringify(nextMockBalances));
+        message.success(`NFT #${tokenId} minteado en modo demo.`);
+        setIsPassportMintPopupOpen(false);
+        openMintResultPopup({ tokenId, mode: "demo" });
+        return;
+      }
+
       const txResult = await tx(ticketWriteContract.mintFree(tokenId));
       if (!txResult?.hash) {
         message.error("No se pudo confirmar la transacción en cadena.");
@@ -1438,6 +1445,59 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
               ))}
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {mintingTokenId ? (
+        <div className="xoco-mint-loading-backdrop" role="status" aria-live="polite" aria-label="Mint en progreso">
+          <motion.div
+            className="xoco-mint-loading-shell"
+            initial={{ opacity: 0, y: 16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: EASE_OUT }}
+          >
+            <div className="xoco-mint-loading-avatar-wrap" aria-hidden>
+              <motion.div
+                className="xoco-mint-loading-pulse-ring"
+                initial={{ scale: 0.84, opacity: 0 }}
+                animate={{ scale: 1.45, opacity: 0 }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
+              />
+              <motion.div
+                className="xoco-mint-loading-pulse-ring xoco-mint-loading-pulse-ring-secondary"
+                initial={{ scale: 0.88, opacity: 0 }}
+                animate={{ scale: 1.52, opacity: 0 }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut", delay: 0.24 }}
+              />
+              <div className="xoco-mint-loading-avatar">
+                {mintingTokenMeta?.image ? (
+                  <img src={mintingTokenMeta.image} alt={mintingTokenMeta.museumName || "NFT"} loading="lazy" />
+                ) : (
+                  <span>NFT</span>
+                )}
+              </div>
+            </div>
+
+            <h3>Procesando mint on-chain</h3>
+            <p>
+              {mintingTokenMeta?.museumName || "Museo"} · {mintingTokenMeta?.label || `NFT #${mintingTokenId}`} · #
+              {mintingTokenId}
+            </p>
+
+            <div className="xoco-mint-loading-progress-track" aria-hidden>
+              <motion.div
+                className="xoco-mint-loading-progress-fill"
+                initial={{ width: "20%" }}
+                animate={{ width: ["26%", "78%", "44%", "86%", "62%"] }}
+                transition={{ duration: 2.1, ease: "easeInOut", repeat: Infinity }}
+              />
+            </div>
+
+            <span className="xoco-mint-loading-caption">
+              Espera unos segundos. Al confirmar, abriremos el popup con hash y links del explorer.
+            </span>
+          </motion.div>
         </div>
       ) : null}
 

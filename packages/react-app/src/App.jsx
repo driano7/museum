@@ -46,10 +46,22 @@ function App() {
   const scrollToPassportDemo = useCallback(() => {
     if (typeof window === "undefined" || window.location.pathname !== "/") return;
 
-    window.setTimeout(() => {
+    const scrollWithRetry = attempt => {
       const target = document.querySelector("#passport-demo");
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (window.location.hash !== "#passport-demo") {
+          window.history.replaceState(null, "", "#passport-demo");
+        }
+        return;
+      }
+
+      if (attempt < 20) {
+        window.setTimeout(() => scrollWithRetry(attempt + 1), 90);
+      }
+    };
+
+    window.setTimeout(() => scrollWithRetry(0), 60);
   }, []);
 
   const connectWithPrivy = useCallback(() => {
@@ -84,23 +96,21 @@ function App() {
 
       setIsMockConnecting(true);
       setMockConnectedWalletName(walletName);
-
-      window.setTimeout(() => {
-        try {
-          setConnectionType(`mock-${walletName.toLowerCase()}`);
-          setInjectedProvider(undefined);
-          setAddress(selectedAddress);
-          setStoredTicketeriaUser(selectedAddress, {
-            walletAddress: selectedAddress,
-            curp: "",
-            isMexican: true,
-          });
-        } finally {
-          setIsMockConnecting(false);
-          setIsMockConnectOpen(false);
-          scrollToPassportDemo();
-        }
-      }, 320);
+      try {
+        // Connect immediately so passport section appears without waiting for any modal animation.
+        setConnectionType(`mock-${walletName.toLowerCase()}`);
+        setInjectedProvider(undefined);
+        setAddress(selectedAddress);
+        setStoredTicketeriaUser(selectedAddress, {
+          walletAddress: selectedAddress,
+          curp: "",
+          isMexican: true,
+        });
+      } finally {
+        setIsMockConnecting(false);
+        setIsMockConnectOpen(false);
+        scrollToPassportDemo();
+      }
     },
     [isMockConnecting, scrollToPassportDemo],
   );
