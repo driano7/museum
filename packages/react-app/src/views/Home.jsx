@@ -15,6 +15,7 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } fr
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Account } from "../components";
+import { DEFAULT_TICKETS_CONTRACT_ADDRESS } from "../constants";
 import useTicketContract from "../hooks/useTicketContract";
 import PaymentDemoPopup from "../components/PaymentDemoPopup";
 import ThemeSwitch from "../components/ThemeSwitch";
@@ -423,8 +424,7 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
   const reduceMotion = useReducedMotion();
   const walletAddress = accountProps?.address;
   const tx = accountProps?.tx;
-  const ticketsContractAddress =
-    process.env.REACT_APP_TICKETS_CONTRACT_ADDRESS || process.env.TICKETS_CONTRACT_ADDRESS || "";
+  const ticketsContractAddress = DEFAULT_TICKETS_CONTRACT_ADDRESS;
 
   const { ticketReadContract, ticketWriteContract } = useTicketContract({
     contractAddress: ticketsContractAddress,

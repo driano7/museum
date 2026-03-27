@@ -3,11 +3,14 @@ import { useEffect, useMemo, useState } from "react";
 
 const TICKET_NFT_1155_ABI = [
   "function usdc() view returns (address)",
+  "function getEvent(uint256) view returns (tuple(string name, address payoutWallet, uint256 priceMex, uint256 priceForeign, bool active, bool allowFree))",
   "function events(uint256) view returns (string name, address payoutWallet, uint256 priceMex, uint256 priceForeign, bool active, bool allowFree)",
   "function hasFreeTicket(uint256,address) view returns (bool)",
   "function mintFree(uint256) external",
   "function mintPaid(uint256,bool) external",
   "function balanceOf(address,uint256) view returns (uint256)",
+  "function owner() view returns (address)",
+  "function setEvent(uint256 eventId, string name, address payoutWallet, uint256 priceMex, uint256 priceForeign, bool active, bool allowFree) external",
 ];
 
 const ERC20_ABI = [
@@ -16,7 +19,7 @@ const ERC20_ABI = [
   "function symbol() view returns (string)",
 ];
 
-export default function useTicketContract({ contractAddress, provider, signer }) {
+export default function useTicketContract({ contractAddress, provider, signer, usdcAddressOverride }) {
   const ticketReadContract = useMemo(() => {
     if (!contractAddress || !provider) return null;
     return new ethers.Contract(contractAddress, TICKET_NFT_1155_ABI, provider);
@@ -33,6 +36,11 @@ export default function useTicketContract({ contractAddress, provider, signer })
     let stale = false;
 
     const loadUsdcAddress = async () => {
+      if (usdcAddressOverride) {
+        setUsdcAddress(usdcAddressOverride);
+        return;
+      }
+
       if (!ticketReadContract) {
         setUsdcAddress("");
         return;
@@ -56,7 +64,7 @@ export default function useTicketContract({ contractAddress, provider, signer })
     return () => {
       stale = true;
     };
-  }, [ticketReadContract]);
+  }, [ticketReadContract, usdcAddressOverride]);
 
   const usdcReadContract = useMemo(() => {
     if (!usdcAddress || !provider) return null;

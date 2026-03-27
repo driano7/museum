@@ -7,19 +7,13 @@ import { Route, Switch } from "react-router-dom";
 
 import "./App.css";
 import { CurpOnboardingModal } from "./components";
-import { ALCHEMY_KEY, NETWORKS } from "./constants";
+import { NETWORKS } from "./constants";
 import { getRPCPollTime, Transactor } from "./helpers";
 import { useGasPrice, useStaticJsonRPC } from "./hooks";
 import { Home, Payments, Tickets } from "./views";
 
 const initialNetwork = NETWORKS.monadTestnet || NETWORKS.localhost;
 const USE_BURNER_WALLET = false;
-
-const providers = [
-  "https://eth-mainnet.gateway.pokt.network/v1/lb/611156b4a585a20035148406",
-  `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_KEY}`,
-  "https://rpc.scaffoldeth.io:48544",
-];
 
 function App() {
   const [injectedProvider, setInjectedProvider] = useState();
@@ -34,10 +28,10 @@ function App() {
   const localProvider = useStaticJsonRPC([
     process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : targetNetwork.rpcUrl,
   ]);
-  const mainnetProvider = useStaticJsonRPC(providers, localProvider);
+  // Keep a single-provider setup to avoid legacy Ethereum mainnet RPC calls.
+  const mainnetProvider = localProvider;
 
   const localProviderPollingTime = getRPCPollTime(localProvider);
-  const mainnetProviderPollingTime = getRPCPollTime(mainnetProvider);
 
   const connectWithPrivy = useCallback(() => {
     if (!authReady) return;
@@ -66,7 +60,7 @@ function App() {
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
   const userSigner = userProviderAndSigner.signer;
 
-  const price = useExchangeEthPrice(targetNetwork, mainnetProvider, mainnetProviderPollingTime);
+  const price = useExchangeEthPrice(targetNetwork, localProvider, localProviderPollingTime);
   const gasPrice = useGasPrice(targetNetwork, "FastGasPrice", localProviderPollingTime);
   const tx = Transactor(userSigner, gasPrice);
 

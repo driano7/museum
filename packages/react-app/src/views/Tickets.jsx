@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion/dist/framer-motion";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
+import { DEFAULT_TICKETS_CONTRACT_ADDRESS } from "../constants";
 import useTicketContract from "../hooks/useTicketContract";
 import { getStoredTicketeriaUser } from "../lib/ticketeriaUserStorage";
 
@@ -40,14 +41,15 @@ const ensureBigNumber = value => {
 };
 
 export default function Tickets({ address, userSigner, readProvider, tx }) {
-  const ticketsContractAddress =
-    process.env.REACT_APP_TICKETS_CONTRACT_ADDRESS || process.env.TICKETS_CONTRACT_ADDRESS || "";
+  const ticketsContractAddress = DEFAULT_TICKETS_CONTRACT_ADDRESS;
+  const usdcAddressFromEnv = process.env.REACT_APP_USDC_ADDRESS || process.env.USDC_ADDRESS || "";
 
   const { ticketReadContract, ticketWriteContract, usdcReadContract, usdcWriteContract, usdcAddress } =
     useTicketContract({
       contractAddress: ticketsContractAddress,
       provider: readProvider,
       signer: userSigner,
+      usdcAddressOverride: usdcAddressFromEnv,
     });
 
   const [eventConfigs, setEventConfigs] = useState({});
@@ -86,7 +88,16 @@ export default function Tickets({ address, userSigner, readProvider, tx }) {
     try {
       const configsArray = await Promise.all(
         EVENT_IDS.map(async eventId => {
-          const raw = await ticketReadContract.events(eventId);
+          let raw;
+
+          if (ticketReadContract.getEvent) {
+            raw = await ticketReadContract.getEvent(eventId);
+          } else if (ticketReadContract.events) {
+            raw = await ticketReadContract.events(eventId);
+          } else {
+            throw new Error("Contract ABI missing getEvent/events");
+          }
+
           return [
             eventId,
             {

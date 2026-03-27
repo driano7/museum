@@ -69,7 +69,7 @@ yarn install
 
 Levantar app:
 ```bash
-yarn dev
+yarn start
 ```
 
 Build frontend:
@@ -188,7 +188,7 @@ yarn install
 
 Run app:
 ```bash
-yarn dev
+yarn start
 ```
 
 Frontend build:

@@ -30,7 +30,7 @@ export const NETWORKS = {
     color: "#8b5cf6",
     chainId: 10143,
     rpcUrl: process.env.REACT_APP_PROVIDER || "https://testnet-rpc.monad.xyz",
-    blockExplorer: "https://testnet.monadscan.com/",
+    blockExplorer: "https://testnet.monadexplorer.com/",
     faucet: "https://faucet.monad.xyz",
   },
   localhost: {
@@ -248,6 +248,11 @@ export const NETWORKS = {
     rpcUrl: "http://127.0.0.1:9933",
   },
 };
+
+export const DEFAULT_TICKETS_CONTRACT_ADDRESS =
+  process.env.REACT_APP_TICKETS_CONTRACT_ADDRESS ||
+  process.env.TICKETS_CONTRACT_ADDRESS ||
+  "0xf2ce8d0c8681b2d83855fc37d045678472b8d457";
 
 export const NETWORK = chainId => {
   for (const n in NETWORKS) {
