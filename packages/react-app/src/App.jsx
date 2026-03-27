@@ -1,4 +1,5 @@
 import "antd/dist/antd.css";
+import { Button, Modal, Space, Spin, Typography } from "antd";
 import { usePrivy } from "@privy-io/react-auth";
 import { useUserProviderAndSigner } from "eth-hooks";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
@@ -14,11 +15,19 @@ import { Home, Payments, Tickets } from "./views";
 
 const initialNetwork = NETWORKS.monadTestnet || NETWORKS.localhost;
 const USE_BURNER_WALLET = false;
+const FORCE_MOCK_CONNECT = (process.env.REACT_APP_FORCE_MOCK_CONNECT || "true").toLowerCase() !== "false";
+const FALLBACK_MOCK_ADDRESS = "0x8B01F57F986BB215418d5f247C241C4894bCF96d";
+const isAddressLike = value => /^0x[a-fA-F0-9]{40}$/.test(String(value || "").trim());
+
+const { Text } = Typography;
 
 function App() {
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
   const [connectionType, setConnectionType] = useState(null);
+  const [isMockConnectOpen, setIsMockConnectOpen] = useState(false);
+  const [isMockConnecting, setIsMockConnecting] = useState(false);
+  const [mockConnectedWalletName, setMockConnectedWalletName] = useState("");
 
   const { ready: authReady, authenticated, login, logout, getEthersProvider } = usePrivy();
 
@@ -34,6 +43,11 @@ function App() {
   const localProviderPollingTime = getRPCPollTime(localProvider);
 
   const connectWithPrivy = useCallback(() => {
+    if (FORCE_MOCK_CONNECT) {
+      setIsMockConnectOpen(true);
+      return;
+    }
+
     if (!authReady) return;
 
     setConnectionType("privy");
@@ -43,7 +57,44 @@ function App() {
     login();
   }, [authReady, login]);
 
+  const handleMockWalletSelection = useCallback(walletName => {
+    const candidateAddresses = [
+      process.env.REACT_APP_MOCK_DEPLOYER_ADDRESS,
+      process.env.REACT_APP_MOCK_USDC_ADDRESS,
+    ]
+      .map(value => String(value || "").trim())
+      .filter(isAddressLike);
+
+    if (isAddressLike(FALLBACK_MOCK_ADDRESS)) {
+      candidateAddresses.push(FALLBACK_MOCK_ADDRESS);
+    }
+
+    const selectedAddress =
+      candidateAddresses[Math.floor(Math.random() * candidateAddresses.length)] || FALLBACK_MOCK_ADDRESS;
+
+    setIsMockConnecting(true);
+    setMockConnectedWalletName(walletName);
+
+    window.setTimeout(() => {
+      setConnectionType(`mock-${walletName.toLowerCase()}`);
+      setInjectedProvider(undefined);
+      setAddress(selectedAddress);
+      setIsMockConnecting(false);
+      setIsMockConnectOpen(false);
+    }, 1300);
+  }, []);
+
   const logoutOfWeb3Modal = useCallback(async () => {
+    if (FORCE_MOCK_CONNECT) {
+      setConnectionType(null);
+      setInjectedProvider(undefined);
+      setAddress(undefined);
+      setMockConnectedWalletName("");
+      setIsMockConnecting(false);
+      setIsMockConnectOpen(false);
+      return;
+    }
+
     if (authenticated) {
       await logout();
     }
@@ -65,6 +116,10 @@ function App() {
   const tx = Transactor(userSigner, gasPrice);
 
   useEffect(() => {
+    if (FORCE_MOCK_CONNECT) {
+      return;
+    }
+
     if (!authReady) {
       return;
     }
@@ -88,6 +143,10 @@ function App() {
     let mounted = true;
 
     async function syncAddress() {
+      if (FORCE_MOCK_CONNECT && connectionType?.startsWith("mock")) {
+        return;
+      }
+
       if (!userSigner) {
         if (mounted) setAddress(undefined);
         return;
@@ -102,11 +161,44 @@ function App() {
     return () => {
       mounted = false;
     };
-  }, [userSigner]);
+  }, [connectionType, userSigner]);
 
   return (
     <div className="App">
       <CurpOnboardingModal walletAddress={address} />
+
+      <Modal
+        title="Conecta tu wallet (Demo)"
+        visible={isMockConnectOpen}
+        onCancel={() => (!isMockConnecting ? setIsMockConnectOpen(false) : null)}
+        footer={null}
+        maskClosable={!isMockConnecting}
+        keyboard={!isMockConnecting}
+        centered
+      >
+        {isMockConnecting ? (
+          <Space direction="vertical" size={14} style={{ width: "100%", textAlign: "center", padding: "12px 0" }}>
+            <Spin size="large" />
+            <Text strong>Conectando con {mockConnectedWalletName || "wallet"}...</Text>
+            <Text type="secondary">Cargando dirección de demo para hackathon</Text>
+          </Space>
+        ) : (
+          <Space direction="vertical" size={10} style={{ width: "100%" }}>
+            <Button block type="primary" onClick={() => handleMockWalletSelection("Metamask")}>
+              Metamask
+            </Button>
+            <Button block onClick={() => handleMockWalletSelection("Coinbase Wallet")}>
+              Coinbase Wallet
+            </Button>
+            <Button block onClick={() => handleMockWalletSelection("WalletConnect")}>
+              WalletConnect
+            </Button>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Modo demo: no se abre Privy, solo simula conexión para presentar el flujo.
+            </Text>
+          </Space>
+        )}
+      </Modal>
 
       <Switch>
         <Route exact path="/">

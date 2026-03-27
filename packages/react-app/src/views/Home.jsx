@@ -346,6 +346,7 @@ const plans = [
 const EASE_OUT = [0.22, 1, 0.36, 1];
 
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+const getMockPassportStorageKey = wallet => `ticketeria:mock-passport:${String(wallet || "").toLowerCase()}`;
 
 function PeripheralCard({ card, width, height, progressRatio }) {
   const Icon = card.icon;
@@ -438,6 +439,7 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
   const [isMuseumAutoScrollEnabled, setIsMuseumAutoScrollEnabled] = useState(true);
   const [isPassportMintPopupOpen, setIsPassportMintPopupOpen] = useState(false);
   const [passportBalances, setPassportBalances] = useState({});
+  const [mockPassportBalances, setMockPassportBalances] = useState({});
   const [isPassportLoading, setIsPassportLoading] = useState(false);
   const [mintingTokenId, setMintingTokenId] = useState(null);
   const [revealedPassportTokenIds, setRevealedPassportTokenIds] = useState([]);
@@ -471,7 +473,7 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
 
   const reloadPassportBalances = useCallback(async () => {
     if (!ticketReadContract || !walletAddress) {
-      setPassportBalances({});
+      setPassportBalances({ ...mockPassportBalances });
       return;
     }
 
@@ -484,14 +486,42 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
         }),
       );
 
-      setPassportBalances(Object.fromEntries(balances));
+      const onchainBalances = Object.fromEntries(balances);
+      const mergedBalances = { ...onchainBalances };
+      Object.entries(mockPassportBalances).forEach(([tokenId, value]) => {
+        const nextValue = Number(value) || 0;
+        const currentValue = Number(mergedBalances[tokenId] || 0);
+        mergedBalances[tokenId] = Math.max(currentValue, nextValue);
+      });
+
+      setPassportBalances(mergedBalances);
     } catch (error) {
       console.error("Failed to load passport NFT balances", error);
-      message.error("No fue posible cargar tus NFTs del pasaporte.");
+      setPassportBalances({ ...mockPassportBalances });
     } finally {
       setIsPassportLoading(false);
     }
-  }, [demoTokenIds, ticketReadContract, walletAddress]);
+  }, [demoTokenIds, ticketReadContract, walletAddress, mockPassportBalances]);
+
+  useEffect(() => {
+    if (!walletAddress) {
+      setMockPassportBalances({});
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(getMockPassportStorageKey(walletAddress));
+      const parsed = raw ? JSON.parse(raw) : {};
+      if (parsed && typeof parsed === "object") {
+        setMockPassportBalances(parsed);
+      } else {
+        setMockPassportBalances({});
+      }
+    } catch (error) {
+      console.error("Failed to load mock passport balances", error);
+      setMockPassportBalances({});
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -696,8 +726,24 @@ function Home({ onAgendaDemoClick, isConnected, accountProps }) {
   const revealedTokenIdSet = useMemo(() => new Set(revealedPassportTokenIds), [revealedPassportTokenIds]);
 
   const handleMintPassportNft = async tokenId => {
-    if (!walletAddress || !ticketWriteContract || !tx) {
+    if (!walletAddress) {
       message.error("Conecta tu wallet para mintear.");
+      return;
+    }
+
+    if (!ticketWriteContract || !tx) {
+      const nextMockBalances = {
+        ...mockPassportBalances,
+        [tokenId]: Math.max(1, Number(mockPassportBalances[tokenId] || 0)),
+      };
+
+      setMockPassportBalances(nextMockBalances);
+      setPassportBalances(prev => ({
+        ...prev,
+        [tokenId]: Math.max(1, Number(prev[tokenId] || 0)),
+      }));
+      window.localStorage.setItem(getMockPassportStorageKey(walletAddress), JSON.stringify(nextMockBalances));
+      message.success(`NFT #${tokenId} minteado en modo demo.`);
       return;
     }
 
