@@ -79,7 +79,6 @@
     "gulp-less": "^4.0.1",
     "gulp-postcss": "^9.0.0",
     "less-plugin-npm-import": "^2.1.0",
-    "patch-package": "^8.0.1",
     "prettier": "^2.0.5",
     "s3-folder-upload": "^2.3.1",
     "surge": "^0.21.5"
@@ -107,7 +106,6 @@
     "theme": "npx gulp less",
     "watch": "node ./scripts/watch.js",
     "prettier": "npx prettier --write . '!(node_module|build)/**/*'",
-    "postinstall": "patch-package",
     "dev": "react-scripts --openssl-legacy-provider start"
   }
 }
