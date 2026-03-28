@@ -18,6 +18,7 @@ const initialNetwork = NETWORKS.monadTestnet || NETWORKS.localhost;
 const USE_BURNER_WALLET = false;
 const FORCE_MOCK_CONNECT = (process.env.REACT_APP_FORCE_MOCK_CONNECT || "true").toLowerCase() !== "false";
 const FALLBACK_MOCK_ADDRESS = "0x8B01F57F986BB215418d5f247C241C4894bCF96d";
+const MOCK_CONNECTED_STORAGE_KEY = "ticketeria:mock-connected-address";
 const isAddressLike = value => /^0x[a-fA-F0-9]{40}$/.test(String(value || "").trim());
 
 const { Text } = Typography;
@@ -101,6 +102,9 @@ function App() {
         setConnectionType(`mock-${walletName.toLowerCase()}`);
         setInjectedProvider(undefined);
         setAddress(selectedAddress);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(MOCK_CONNECTED_STORAGE_KEY, selectedAddress);
+        }
         setStoredTicketeriaUser(selectedAddress, {
           walletAddress: selectedAddress,
           curp: "",
@@ -123,6 +127,9 @@ function App() {
       setMockConnectedWalletName("");
       setIsMockConnecting(false);
       setIsMockConnectOpen(false);
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(MOCK_CONNECTED_STORAGE_KEY);
+      }
       return;
     }
 
@@ -171,6 +178,16 @@ function App() {
   }, [authReady, authenticated, getEthersProvider]);
 
   useEffect(() => {
+    if (!FORCE_MOCK_CONNECT || typeof window === "undefined" || address) return;
+
+    const restored = String(window.localStorage.getItem(MOCK_CONNECTED_STORAGE_KEY) || "").trim();
+    if (!isAddressLike(restored)) return;
+
+    setConnectionType("mock-restored");
+    setAddress(restored);
+  }, [address]);
+
+  useEffect(() => {
     let mounted = true;
 
     async function syncAddress() {
@@ -215,13 +232,26 @@ function App() {
           </Space>
         ) : (
           <Space direction="vertical" size={10} style={{ width: "100%" }}>
-            <Button block type="primary" onClick={() => handleMockWalletSelection("Metamask")}>
+            <Button
+              block
+              type="primary"
+              onClick={() => handleMockWalletSelection("Metamask")}
+              onMouseDown={() => handleMockWalletSelection("Metamask")}
+            >
               Metamask
             </Button>
-            <Button block onClick={() => handleMockWalletSelection("Coinbase Wallet")}>
+            <Button
+              block
+              onClick={() => handleMockWalletSelection("Coinbase Wallet")}
+              onMouseDown={() => handleMockWalletSelection("Coinbase Wallet")}
+            >
               Coinbase Wallet
             </Button>
-            <Button block onClick={() => handleMockWalletSelection("WalletConnect")}>
+            <Button
+              block
+              onClick={() => handleMockWalletSelection("WalletConnect")}
+              onMouseDown={() => handleMockWalletSelection("WalletConnect")}
+            >
               WalletConnect
             </Button>
             <Text type="secondary" style={{ fontSize: 12 }}>
