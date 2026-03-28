@@ -19,6 +19,7 @@ const USE_BURNER_WALLET = false;
 const FORCE_MOCK_CONNECT = (process.env.REACT_APP_FORCE_MOCK_CONNECT || "true").toLowerCase() !== "false";
 const FALLBACK_MOCK_ADDRESS = "0x8B01F57F986BB215418d5f247C241C4894bCF96d";
 const MOCK_CONNECTED_STORAGE_KEY = "ticketeria:mock-connected-address";
+const PRIVY_APP_ID = String(process.env.REACT_APP_PRIVY_APP_ID || "").trim();
 const isAddressLike = value => /^0x[a-fA-F0-9]{40}$/.test(String(value || "").trim());
 
 const { Text } = Typography;
@@ -66,18 +67,22 @@ function App() {
   }, []);
 
   const connectWithPrivy = useCallback(() => {
-    if (FORCE_MOCK_CONNECT) {
+    // Fallback to demo modal whenever Privy is disabled, missing, or still not ready.
+    if (FORCE_MOCK_CONNECT || !PRIVY_APP_ID || !authReady) {
       setIsMockConnectOpen(true);
       return;
     }
-
-    if (!authReady) return;
 
     setConnectionType("privy");
 
     // Always open Privy login flow from the main CTA so users can choose social login.
     // Wallet-linking stays available later once the user is authenticated.
-    login();
+    try {
+      login();
+    } catch (error) {
+      console.error("Privy login failed, falling back to demo connect modal", error);
+      setIsMockConnectOpen(true);
+    }
   }, [authReady, login]);
 
   const handleMockWalletSelection = useCallback(
@@ -274,8 +279,8 @@ function App() {
               tx,
               mainnetProvider,
               price,
-              authReady: FORCE_MOCK_CONNECT ? true : authReady,
-              forceEnableConnect: FORCE_MOCK_CONNECT,
+              authReady: FORCE_MOCK_CONNECT || !PRIVY_APP_ID ? true : authReady,
+              forceEnableConnect: FORCE_MOCK_CONNECT || !PRIVY_APP_ID,
               connectionType,
               connectWithPrivy,
               logoutOfWeb3Modal,
