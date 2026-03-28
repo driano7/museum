@@ -1,13 +1,11 @@
 import "antd/dist/antd.css";
 import { Button, Modal, Space, Spin, Typography } from "antd";
-import { usePrivy } from "@privy-io/react-auth";
 import { useUserProviderAndSigner } from "eth-hooks";
-import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 import React, { useCallback, useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
 import "./App.css";
-import { CurpOnboardingModal } from "./components";
+import CurpOnboardingModal from "./components/CurpOnboardingModal";
 import { NETWORKS } from "./constants";
 import { getRPCPollTime, Transactor } from "./helpers";
 import { useGasPrice, useStaticJsonRPC } from "./hooks";
@@ -19,7 +17,6 @@ const USE_BURNER_WALLET = false;
 const FORCE_MOCK_CONNECT = (process.env.REACT_APP_FORCE_MOCK_CONNECT || "true").toLowerCase() !== "false";
 const FALLBACK_MOCK_ADDRESS = "0x8B01F57F986BB215418d5f247C241C4894bCF96d";
 const MOCK_CONNECTED_STORAGE_KEY = "ticketeria:mock-connected-address";
-const PRIVY_APP_ID = String(process.env.REACT_APP_PRIVY_APP_ID || "").trim();
 const isAddressLike = value => /^0x[a-fA-F0-9]{40}$/.test(String(value || "").trim());
 
 const { Text } = Typography;
@@ -31,8 +28,6 @@ function App() {
   const [isMockConnectOpen, setIsMockConnectOpen] = useState(false);
   const [isMockConnecting, setIsMockConnecting] = useState(false);
   const [mockConnectedWalletName, setMockConnectedWalletName] = useState("");
-
-  const { ready: authReady, authenticated, login, logout, getEthersProvider } = usePrivy();
 
   const targetNetwork = initialNetwork;
   const blockExplorer = targetNetwork.blockExplorer;
@@ -67,23 +62,8 @@ function App() {
   }, []);
 
   const connectWithPrivy = useCallback(() => {
-    // Fallback to demo modal whenever Privy is disabled, missing, or still not ready.
-    if (FORCE_MOCK_CONNECT || !PRIVY_APP_ID || !authReady) {
-      setIsMockConnectOpen(true);
-      return;
-    }
-
-    setConnectionType("privy");
-
-    // Always open Privy login flow from the main CTA so users can choose social login.
-    // Wallet-linking stays available later once the user is authenticated.
-    try {
-      login();
-    } catch (error) {
-      console.error("Privy login failed, falling back to demo connect modal", error);
-      setIsMockConnectOpen(true);
-    }
-  }, [authReady, login]);
+    setIsMockConnectOpen(true);
+  }, []);
 
   const handleMockWalletSelection = useCallback(
     walletName => {
@@ -125,62 +105,25 @@ function App() {
   );
 
   const logoutOfWeb3Modal = useCallback(async () => {
-    if (FORCE_MOCK_CONNECT) {
-      setConnectionType(null);
-      setInjectedProvider(undefined);
-      setAddress(undefined);
-      setMockConnectedWalletName("");
-      setIsMockConnecting(false);
-      setIsMockConnectOpen(false);
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(MOCK_CONNECTED_STORAGE_KEY);
-      }
-      return;
-    }
-
-    if (authenticated) {
-      await logout();
-    }
-
-    if (injectedProvider && injectedProvider.provider && typeof injectedProvider.provider.disconnect === "function") {
-      await injectedProvider.provider.disconnect();
-    }
-
     setConnectionType(null);
     setInjectedProvider(undefined);
     setAddress(undefined);
-  }, [authenticated, injectedProvider, logout]);
+    setMockConnectedWalletName("");
+    setIsMockConnecting(false);
+    setIsMockConnectOpen(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(MOCK_CONNECTED_STORAGE_KEY);
+    }
+  }, []);
 
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
   const userSigner = userProviderAndSigner.signer;
 
-  const price = useExchangeEthPrice(targetNetwork, localProvider, localProviderPollingTime);
+  // Uniswap ETH price hook is Ethereum-mainnet specific and throws on Monad.
+  // Keep a stable demo price to avoid runtime errors in wallet widgets.
+  const price = 0;
   const gasPrice = useGasPrice(targetNetwork, "FastGasPrice", localProviderPollingTime);
   const tx = Transactor(userSigner, gasPrice);
-
-  useEffect(() => {
-    if (FORCE_MOCK_CONNECT) {
-      return;
-    }
-
-    if (!authReady) {
-      return;
-    }
-
-    if (!authenticated) {
-      setInjectedProvider(undefined);
-      return;
-    }
-
-    try {
-      const provider = getEthersProvider();
-      setConnectionType("privy");
-      setInjectedProvider(provider);
-    } catch (error) {
-      console.error("Failed to sync Privy wallet", error);
-      setInjectedProvider(undefined);
-    }
-  }, [authReady, authenticated, getEthersProvider]);
 
   useEffect(() => {
     if (!FORCE_MOCK_CONNECT || typeof window === "undefined" || address) return;
@@ -279,8 +222,8 @@ function App() {
               tx,
               mainnetProvider,
               price,
-              authReady: FORCE_MOCK_CONNECT || !PRIVY_APP_ID ? true : authReady,
-              forceEnableConnect: FORCE_MOCK_CONNECT || !PRIVY_APP_ID,
+              authReady: true,
+              forceEnableConnect: true,
               connectionType,
               connectWithPrivy,
               logoutOfWeb3Modal,
