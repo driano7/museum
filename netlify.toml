@@ -1,0 +1,14 @@
+[build]
+  base = "packages/react-app"
+  command = "bash ../../scripts/netlify-build.sh"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "20.19.5"
+  YARN_VERSION = "1.22.22"
+  NETLIFY_USE_YARN = "false"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
