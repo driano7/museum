@@ -60,6 +60,17 @@ Deploy (`packages/hardhat/example.env`):
 - `TICKETS_CONTRACT_ADDRESS=` (opcional, para reusar contrato)
 - `BASE_URI=https://api.ticketeria.xyz/metadata/{id}.json`
 
+Netlify (frontend):
+- Netlify usa el archivo `netlify.toml` del root y publica `packages/react-app/build`.
+- El build usa `scripts/netlify-build.sh` para mapear variables globales a `REACT_APP_*`.
+- Se inyectan al frontend solo valores con formato de address para evitar exponer secretos.
+- En Netlify define como minimo:
+  - `REACT_APP_PRIVY_APP_ID`
+  - (`REACT_APP_PROVIDER` o `MONAD_RPC_URL`)
+  - (`REACT_APP_TICKETS_CONTRACT_ADDRESS` o `TICKETS_CONTRACT_ADDRESS`)
+  - (opcionales) Stripe/crypto demo.
+- `packages/hardhat/.env` no se usa en runtime del cliente en Netlify.
+
 ### Comandos útiles
 
 Instalar:
@@ -86,8 +97,7 @@ npm run compile
 
 Deploy/Setup 21 NFTs en Monad testnet (Hardhat):
 ```bash
-cd packages/hardhat
-npm run deploy:monad:testnet
+yarn deploy:monad:testnet
 ```
 
 Deploy con Foundry (si usas el workspace `contracts/`):
@@ -179,6 +189,17 @@ Deploy (`packages/hardhat/example.env`):
 - `TICKETS_CONTRACT_ADDRESS=` (optional, reuse contract)
 - `BASE_URI=https://api.ticketeria.xyz/metadata/{id}.json`
 
+Netlify (frontend):
+- Netlify reads `netlify.toml` at repo root and publishes `packages/react-app/build`.
+- Build runs `scripts/netlify-build.sh` to map global env vars into `REACT_APP_*`.
+- Only address-shaped values are exposed to frontend mock vars to avoid secret leakage.
+- Set at least:
+  - `REACT_APP_PRIVY_APP_ID`
+  - (`REACT_APP_PROVIDER` or `MONAD_RPC_URL`)
+  - (`REACT_APP_TICKETS_CONTRACT_ADDRESS` or `TICKETS_CONTRACT_ADDRESS`)
+  - (optional) Stripe/crypto demo vars.
+- `packages/hardhat/.env` is not used by the client runtime on Netlify.
+
 ### Useful commands
 
 Install:
@@ -205,8 +226,7 @@ npm run compile
 
 Deploy/setup 21 NFTs on Monad testnet (Hardhat):
 ```bash
-cd packages/hardhat
-npm run deploy:monad:testnet
+yarn deploy:monad:testnet
 ```
 
 Deploy with Foundry (if you use the `contracts/` workspace):
