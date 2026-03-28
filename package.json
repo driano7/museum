@@ -54,8 +54,8 @@
     "deploy-and-graph": "yarn deploy && yarn graph-ship-local",
     "theme": "yarn workspace @scaffold-eth/react-app theme",
     "watch-theme": "yarn workspace @scaffold-eth/react-app watch",
-    "postinstall": "husky install",
-    "prepare": "husky install"
+    "postinstall": "[ -n \"$CI\" ] || (command -v husky >/dev/null 2>&1 && husky install || true)",
+    "prepare": "[ -n \"$CI\" ] || (command -v husky >/dev/null 2>&1 && husky install || true)"
   },
   "workspaces": {
     "packages": [
